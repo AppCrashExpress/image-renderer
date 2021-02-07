@@ -12,13 +12,14 @@ int main(int argc, char** argv) {
     Point p1 = {50, 40};
 
     Triangle tri = {{
-        {50, 50},
-        {50, 30},
-        {70, 40}
+        {50, 10},
+        {20, 50},
+        {70, 90}
     }};
 
     draw_line(p0, p1, image, white);
-    draw_triangle(tri, image, white);
+    fill_triangle(tri, image, white);
+    draw_triangle(tri, image, red);
 
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");

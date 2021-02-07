@@ -15,5 +15,9 @@ void draw_triangle(Point p0, Point p1, Point p2,
 void draw_triangle(const Triangle& tri,
         TGAImage& image, const TGAColor& color);
 
+void fill_triangle(Point p0, Point p1, Point p2, 
+        TGAImage& image, const TGAColor& color);
+void fill_triangle(const Triangle& tri,
+        TGAImage& image, const TGAColor& color);
 
 #endif
