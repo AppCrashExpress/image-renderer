@@ -77,15 +77,21 @@ public:
 	TGAImage();
 	TGAImage(int w, int h, int bpp);
 	TGAImage(const TGAImage &img);
+
+	~TGAImage();
+
+	TGAImage & operator =(const TGAImage &img);
+
 	bool read_tga_file(const char *filename);
 	bool write_tga_file(const char *filename, bool rle=true);
+
 	bool flip_horizontally();
 	bool flip_vertically();
-	bool scale(int w, int h);
+
+	bool     scale(int w, int h);
+	bool     set(int x, int y, TGAColor c);
 	TGAColor get(int x, int y);
-	bool set(int x, int y, TGAColor c);
-	~TGAImage();
-	TGAImage & operator =(const TGAImage &img);
+
 	int get_width();
 	int get_height();
 	int get_bytespp();
