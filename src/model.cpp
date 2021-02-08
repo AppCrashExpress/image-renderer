@@ -2,6 +2,7 @@
 
 #include <string>
 #include "utils.h"
+#include "basic_geometry.h"
 
 Model::Model(std::istream& is) {
     load_model(is);
@@ -59,5 +60,24 @@ void Model::load_model(std::istream& is) {
         faces_.push_back( Vec3<FaceType>(points[0], points[1], points[2]) );
 
         if ( !(is >> tag) ) { break; }
+    }
+}
+
+void Model::draw(TGAImage& image, const TGAColor& color) {
+    int height = image.get_height();
+    int width  = image.get_width();
+
+    for (const auto& face : faces_) {
+        for (int i = 0; i < 3; ++i) {
+            const Vec3d& vert_a = verts_[face[i].vert_i];
+            const Vec3d& vert_b = verts_[face[(i + 1) % 3].vert_i];
+            
+            int x0 = (vert_a[0] + 1.0f) * width / 2;
+            int y0 = (vert_a[1] + 1.0f) * height / 2;
+            int x1 = (vert_b[0] + 1.0f) * width / 2;
+            int y1 = (vert_b[1] + 1.0f) * height / 2;
+           
+            draw_line(x0, y0, x1, y1, image, color); 
+        }
     }
 }

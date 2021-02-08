@@ -5,13 +5,14 @@
 #include <vector>
 
 #include "utils.h"
+#include "tgaimage.h"
 
 class Model {
 public:
     Model(std::istream& is);
     ~Model() { };
 
-    void draw();
+    void draw(TGAImage& image, const TGAColor& color);
 
 private:
     struct FaceType {
