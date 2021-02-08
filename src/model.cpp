@@ -51,7 +51,9 @@ void Model::load_model(std::istream& is) {
             is >> i_vert >> sep 
                >> i_text >> sep 
                >> i_norm;
-            points[i] = { i_vert, i_text, i_norm };
+            // Reduce by one before putting since 
+            // incdecies start from one
+            points[i] = { --i_vert, --i_text, --i_norm };
         }
 
         faces_.push_back( Vec3<FaceType>(points[0], points[1], points[2]) );
