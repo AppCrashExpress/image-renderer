@@ -40,6 +40,14 @@ public:
                        values_[2] - other.values_[2]);
     }
 
+    T& operator [] (int i) {
+        return values_[i];
+    }
+
+    const T& operator [] (int i) const {
+        return values_[i];
+    }
+
 private: 
     T values_[3];
 };
