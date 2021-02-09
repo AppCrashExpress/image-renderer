@@ -11,7 +11,12 @@ public:
     Model(std::istream& is);
     ~Model() { };
 
-    void draw();
+    const std::vector<Vec3d>& get_verts() const {
+        return verts_;
+    }
+
+    const std::vector<Vec3i> get_face_verts() const;
+    
 
 private:
     struct FaceType {

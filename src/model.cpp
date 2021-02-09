@@ -61,3 +61,20 @@ void Model::load_model(std::istream& is) {
         if ( !(is >> tag) ) { break; }
     }
 }
+
+
+const std::vector<Vec3i> Model::get_face_verts() const {
+    int a, b, c;
+    std::vector<Vec3i> face_verts;
+    face_verts.reserve(faces_.size());
+
+    for (const auto& face : faces_) {
+        a = face[0].vert_i;
+        b = face[1].vert_i;
+        c = face[2].vert_i;
+
+        face_verts.push_back( Vec3i(a, b, c) );
+    }
+
+    return face_verts;
+}
