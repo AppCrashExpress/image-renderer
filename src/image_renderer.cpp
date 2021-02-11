@@ -15,6 +15,7 @@ ImageRenderer::ImageRenderer(int width, int height, int bpp)
     
     image_width_  = width;
     image_height_ = height;
+    resize_z_buffer();
 }
 
 ImageRenderer::ImageRenderer(TGAImage& image)
@@ -23,6 +24,7 @@ ImageRenderer::ImageRenderer(TGAImage& image)
 
     image_width_  = image.get_width();
     image_height_ = image.get_height();
+    resize_z_buffer();
 }
 
 ImageRenderer::ImageRenderer(TGAImage&& image)
@@ -31,6 +33,7 @@ ImageRenderer::ImageRenderer(TGAImage&& image)
 
     image_width_  = image.get_width();
     image_height_ = image.get_height();
+    resize_z_buffer();
 }
 
 void ImageRenderer::draw(const Model& model) {
@@ -82,6 +85,13 @@ bool ImageRenderer::save(const char* filename) {
     return image_.write_tga_file(filename);    
 }
 
+void ImageRenderer::resize_z_buffer() {
+    z_buffer_ = std::vector< std::vector<float> > (
+                image_width_,
+                std::vector<float> (image_height_, -2.0f)
+            );
+}
+
 bool ImageRenderer::check_visible(const Vec3d& norm) {
     return Vec3d::dot_product(norm, cam_dir_) > 0;
 }
@@ -112,6 +122,13 @@ Vec3d ImageRenderer::convert_barycentric(const ScreenPoint& p_a,
                  params[0] / params[2]);
 }
 
+void ImageRenderer::try_paint(const ScreenPoint& point, const TGAColor& color) {
+    if (z_buffer_[point.x][point.y] < point.z) {
+        z_buffer_[point.x][point.y] = point.z;
+        image_.set(point.x, point.y, color);
+    }
+}
+
 void ImageRenderer::fill_triangle(const Vec3d& vert_a,
                                   const Vec3d& vert_b,
                                   const Vec3d& vert_c,
@@ -122,11 +139,13 @@ void ImageRenderer::fill_triangle(const Vec3d& vert_a,
 
     ScreenPoint low_bound  = {
         std::min( {p_a.x, p_b.x, p_c.x} ),
-        std::min( {p_a.y, p_b.y, p_c.y} )
+        std::min( {p_a.y, p_b.y, p_c.y} ),
+        0
     };
     ScreenPoint high_bound = {
         std::max( {p_a.x, p_b.x, p_c.x} ),
-        std::max( {p_a.y, p_b.y, p_c.y} )
+        std::max( {p_a.y, p_b.y, p_c.y} ),
+        0
     };
 
     if (low_bound.x < 0) { low_bound.x = 0; }
@@ -142,7 +161,12 @@ void ImageRenderer::fill_triangle(const Vec3d& vert_a,
             if (params[0] < 0 || params[1] < 0 || params[2] < 0) {
                 continue;
             }
-            image_.set(w, h, color);
+
+            current.z += params[0] * p_a.z;
+            current.z += params[1] * p_b.z;
+            current.z += params[2] * p_c.z;
+
+            try_paint(current, color);
         }
     }
 }

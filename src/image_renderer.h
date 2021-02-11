@@ -1,6 +1,8 @@
 #ifndef MODEL_RENDERER_H
 #define MODEL_RENDERER_H
 
+#include <vector>
+
 #include "tgaimage.h"
 #include "model.h"
 #include "utils.h"
@@ -39,6 +41,7 @@ private:
         }
     };
 
+    void resize_z_buffer();
     bool check_visible(const Vec3d& norm);
     ScreenPoint to_screen_coords(const Vec3d& vert);
 
@@ -46,6 +49,8 @@ private:
                               const ScreenPoint& p_b,
                               const ScreenPoint& p_c,
                               const ScreenPoint& p_current);
+
+    void try_paint(const ScreenPoint& point, const TGAColor& color);
     void fill_triangle(const Vec3d& vert_a,
                        const Vec3d& vert_b,
                        const Vec3d& vert_c,
@@ -54,6 +59,8 @@ private:
     TGAImage image_;
     int image_height_;
     int image_width_;
+
+    std::vector< std::vector<float> > z_buffer_;
 
     Vec3d cam_dir_;
     Vec3d light_dir_;
