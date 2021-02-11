@@ -2,6 +2,7 @@
 #include "basic_geometry.h"
 
 #include <vector>
+#include <algorithm>
 
 ImageRenderer::ImageRenderer() {
     cam_dir_ = Vec3d(0, 0, -1);
@@ -119,8 +120,22 @@ void ImageRenderer::fill_triangle(const Vec3d& vert_a,
     ScreenPoint p_b = to_screen_coords(vert_b);
     ScreenPoint p_c = to_screen_coords(vert_c);
 
-    for (int w = 0; w < image_width_; ++w) {
-        for (int h = 0; h < image_height_; ++h) {
+    ScreenPoint low_bound  = {
+        std::min( {p_a.x, p_b.x, p_c.x} ),
+        std::min( {p_a.y, p_b.y, p_c.y} )
+    };
+    ScreenPoint high_bound = {
+        std::max( {p_a.x, p_b.x, p_c.x} ),
+        std::max( {p_a.y, p_b.y, p_c.y} )
+    };
+
+    if (low_bound.x < 0) { low_bound.x = 0; }
+    if (low_bound.y < 0) { low_bound.y = 0; }
+    if (high_bound.x > image_width_)  { high_bound.x = image_width_; }
+    if (high_bound.y > image_height_) { high_bound.y = image_height_; }
+
+    for (int w = low_bound.x; w < high_bound.x; ++w) {
+        for (int h = low_bound.y; h < high_bound.y; ++h) {
             ScreenPoint current = {w, h, 0};
             Vec3d params = convert_barycentric(p_a, p_b, p_c, current);
             
@@ -131,3 +146,4 @@ void ImageRenderer::fill_triangle(const Vec3d& vert_a,
         }
     }
 }
+
