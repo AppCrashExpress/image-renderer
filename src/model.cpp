@@ -4,7 +4,16 @@
 #include "utils.h"
 
 Model::Model(std::istream& is) {
+    has_texture_ = false;
+
     load_model(is);
+}
+
+Model::Model(std::istream& is, const TGAImage& texture) {
+    has_texture_ = true;
+
+    load_model(is);
+    texture_ = texture;
 }
 
 void Model::load_model(std::istream& is) {
@@ -19,14 +28,16 @@ void Model::load_model(std::istream& is) {
         if ( !(is >> tag) ) { break; }
     }
     
-    while ( tag != "vt" ) {
-        is >> tag;
-    }
+    if (has_texture_) {
+        while ( tag != "vt" ) {
+            is >> tag;
+        }
 
-    while (tag == "vt") {
-        is >> a >> b >> c;
-        textures_.push_back( Vec3d(a, b, c) );
-        if ( !(is >> tag) ) { break; }
+        while (tag == "vt") {
+            is >> a >> b >> c;
+            textures_.push_back( Vec3d(a, b, c) );
+            if ( !(is >> tag) ) { break; }
+        }
     }
 
     while ( tag != "vn" ) {
@@ -43,20 +54,23 @@ void Model::load_model(std::istream& is) {
         is >> tag;
     }
 
-    int i_vert, i_text, i_norm;
+    Vec3i i_vert, i_text, i_norm;
     char sep;
     while (tag == "f") {
-        FaceType points[3];
         for (short i = 0; i < 3; ++i) {
-            is >> i_vert >> sep 
-               >> i_text >> sep 
-               >> i_norm;
+            is >> i_vert[i] >> sep 
+               >> i_text[i] >> sep 
+               >> i_norm[i];
             // Reduce by one before putting since 
             // incdecies start from one
-            points[i] = { --i_vert, --i_text, --i_norm };
+            --i_vert[i];
+            --i_text[i];
+            --i_norm[i];
         }
 
-        faces_.push_back( Vec3<FaceType>(points[0], points[1], points[2]) );
+        face_verts_.push_back(i_vert);
+        face_textures_.push_back(i_text);
+        face_norms_.push_back(i_norm);
 
         if ( !(is >> tag) ) { break; }
     }
@@ -64,17 +78,9 @@ void Model::load_model(std::istream& is) {
 
 
 const std::vector<Vec3i> Model::get_face_verts() const {
-    int a, b, c;
-    std::vector<Vec3i> face_verts;
-    face_verts.reserve(faces_.size());
+    return face_verts_;
+}
 
-    for (const auto& face : faces_) {
-        a = face[0].vert_i;
-        b = face[1].vert_i;
-        c = face[2].vert_i;
-
-        face_verts.push_back( Vec3i(a, b, c) );
-    }
-
-    return face_verts;
+const std::vector<Vec3i> Model::get_face_textures() const {
+    return face_textures_;
 }
