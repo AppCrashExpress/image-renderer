@@ -78,10 +78,10 @@ void ImageRenderer::draw(const Model& model) {
 
 void ImageRenderer::draw_textured(const Model& model) {
     const std::vector<Vec3d>& vertices = model.get_verts();
-    const std::vector<Vec3d>& textures = model.get_textures();
+    const std::vector<Vec3d>& textures = model.get_texture_coords();
 
     const std::vector<Vec3i>& faces       = model.get_face_verts();
-    const std::vector<Vec3i>& text_points = model.get_face_textures();
+    const std::vector<Vec3i>& text_points = model.get_face_text_coords();
 
     TGAImage texture = model.get_texture();
 

@@ -20,12 +20,12 @@ public:
     const std::vector<Vec3d>& get_verts() const {
         return verts_;
     }
-    const std::vector<Vec3d>& get_textures() const {
+    const std::vector<Vec3d>& get_texture_coords() const {
         return textures_;
     }
 
     const std::vector<Vec3i> get_face_verts() const;
-    const std::vector<Vec3i> get_face_textures() const;
+    const std::vector<Vec3i> get_face_text_coords() const;
 
     bool has_texture() {
         return has_texture_;
@@ -33,12 +33,7 @@ public:
     
 
 private:
-    struct FaceType {
-        int vert_i, text_i, norm_i;
-    };
-
     void load_model(std::istream& is);
-    void load_model(std::istream& is, const TGAImage& texture);
 
     TGAImage texture_;
     bool has_texture_;

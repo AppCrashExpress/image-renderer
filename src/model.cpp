@@ -81,6 +81,6 @@ const std::vector<Vec3i> Model::get_face_verts() const {
     return face_verts_;
 }
 
-const std::vector<Vec3i> Model::get_face_textures() const {
+const std::vector<Vec3i> Model::get_face_text_coords() const {
     return face_textures_;
 }
