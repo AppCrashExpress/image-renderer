@@ -62,7 +62,7 @@ private:
     void draw_textured_triangle(const Vec3d& vert_a, const Vec3d& text_a,
                                 const Vec3d& vert_b, const Vec3d& text_b,
                                 const Vec3d& vert_c, const Vec3d& text_x,
-                                TGAImage& texture);
+                                TGAImage& texture, float intensity);
 
     TGAImage image_;
     int image_height_;

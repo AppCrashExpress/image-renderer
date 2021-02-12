@@ -40,23 +40,10 @@ void ImageRenderer::draw(const Model& model) {
     const std::vector<Vec3d>& vertices = model.get_verts();
     const std::vector<Vec3i>& faces    = model.get_face_verts();
 
-//    const std::vector<Vec3d>& vertices = {
-//        { 0.0f, -0.5f,  0.0f},
-//        { 0.5f,  0.5f,  0.5f},
-//        {-0.5f,  0.5f,  0.5f},
-//        {-0.5f,  0.5f, -0.5f},
-//        { 0.5f,  0.5f, -0.5f},
-//    };
-//    const std::vector<Vec3i>& faces = {
-//        {0, 1, 3},
-//        {0, 4, 2}
-//    };
-
-
     for (const auto& face : faces) {
-        Vec3d vert_a = vertices[ face[0] ];
-        Vec3d vert_b = vertices[ face[1] ];
-        Vec3d vert_c = vertices[ face[2] ];
+        const Vec3d& vert_a = vertices[ face[0] ];
+        const Vec3d& vert_b = vertices[ face[1] ];
+        const Vec3d& vert_c = vertices[ face[2] ];
 
         // If counterclockwise, norm goes inside model
         Vec3d norm = Vec3d::cross_product( (vert_c - vert_a), 
@@ -66,35 +53,34 @@ void ImageRenderer::draw(const Model& model) {
         if ( !check_visible(norm) ) { continue; }
         
         float intensity = Vec3d::dot_product(norm, light_dir_);
-        if (intensity < 0) { intensity = 0; }
+        if (intensity < 0) { continue; }
 
-        float lights_white = 255 * intensity;
+        float lit_color = 255 * intensity;
 
         fill_triangle(vert_a, vert_b, vert_c,
-                      TGAColor(lights_white, lights_white, lights_white, 255) );
+                      TGAColor(lit_color, lit_color, lit_color, 255) );
     }
 
 }
 
 void ImageRenderer::draw_textured(const Model& model) {
     const std::vector<Vec3d>& vertices = model.get_verts();
-    const std::vector<Vec3d>& textures = model.get_texture_coords();
+    const std::vector<Vec3i>& faces    = model.get_face_verts();
 
-    const std::vector<Vec3i>& faces       = model.get_face_verts();
-    const std::vector<Vec3i>& text_points = model.get_face_text_coords();
+    const std::vector<Vec3d>& textures    = model.get_texture_coords();
+    const std::vector<Vec3i>& text_coords = model.get_face_text_coords();
 
     TGAImage texture = model.get_texture();
 
     for (size_t i = 0; i < faces.size(); ++i) {
-        Vec3d vert_a = vertices[ faces[i][0] ];
-        Vec3d vert_b = vertices[ faces[i][1] ];
-        Vec3d vert_c = vertices[ faces[i][2] ];
+        const Vec3d& vert_a = vertices[ faces[i][0] ];
+        const Vec3d& vert_b = vertices[ faces[i][1] ];
+        const Vec3d& vert_c = vertices[ faces[i][2] ];
 
-        Vec3d text_a = textures[ text_points[i][0] ];
-        Vec3d text_b = textures[ text_points[i][1] ];
-        Vec3d text_c = textures[ text_points[i][2] ];
+        const Vec3d& text_a = textures[ text_coords[i][0] ];
+        const Vec3d& text_b = textures[ text_coords[i][1] ];
+        const Vec3d& text_c = textures[ text_coords[i][2] ];
 
-        // If counterclockwise, norm goes inside model
         Vec3d norm = Vec3d::cross_product( (vert_c - vert_a), 
                                            (vert_b - vert_a) );
         norm.normalize();
@@ -102,14 +88,12 @@ void ImageRenderer::draw_textured(const Model& model) {
         if ( !check_visible(norm) ) { continue; }
         
         float intensity = Vec3d::dot_product(norm, light_dir_);
-        if (intensity < 0) { intensity = 0; }
-
-        float lights_white = 255 * intensity;
+        if (intensity < 0) { continue; }
 
         draw_textured_triangle(vert_a, text_a,
                                vert_b, text_b,
                                vert_c, text_c,
-                               texture);
+                               texture, intensity);
     }
 
 }
@@ -221,7 +205,7 @@ void ImageRenderer::draw_textured_triangle(
         const Vec3d& vert_a, const Vec3d& text_a,
         const Vec3d& vert_b, const Vec3d& text_b,
         const Vec3d& vert_c, const Vec3d& text_c,
-        TGAImage& texture) {
+        TGAImage& texture, float intensity) {
     ScreenPoint p_a = to_screen_coords(vert_a);
     ScreenPoint p_b = to_screen_coords(vert_b);
     ScreenPoint p_c = to_screen_coords(vert_c);
@@ -259,7 +243,10 @@ void ImageRenderer::draw_textured_triangle(
                 + text_b * params[1]
                 + text_c * params[2];
 
-            const TGAColor color = extract_color(text_point, texture);
+            TGAColor color = extract_color(text_point, texture);
+            color.data.r *= intensity;
+            color.data.b *= intensity;
+            color.data.g *= intensity;
 
             try_paint(current, color);
         }
