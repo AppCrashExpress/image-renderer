@@ -14,6 +14,7 @@ public:
     ImageRenderer(TGAImage&& image);
 
     void draw(const Model& model);
+    void draw_textured(const Model& model);
     void clear();
 
     bool save(const char* filename);
@@ -51,10 +52,17 @@ private:
                               const ScreenPoint& p_current);
 
     void try_paint(const ScreenPoint& point, const TGAColor& color);
+
     void fill_triangle(const Vec3d& vert_a,
                        const Vec3d& vert_b,
                        const Vec3d& vert_c,
                        const TGAColor& color);
+    
+    TGAColor extract_color(const Vec3d& point, TGAImage& texture);
+    void draw_textured_triangle(const Vec3d& vert_a, const Vec3d& text_a,
+                                const Vec3d& vert_b, const Vec3d& text_b,
+                                const Vec3d& vert_c, const Vec3d& text_x,
+                                TGAImage& texture);
 
     TGAImage image_;
     int image_height_;

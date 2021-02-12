@@ -41,6 +41,12 @@ public:
                        z - other.z);
     }
 
+    Vec3<T> operator * (T value) const {
+        return Vec3<T>(x * value,
+                       y * value,
+                       z * value);
+    }
+
     T& operator [] (int i) {
         switch (i) {
           case 0:

@@ -11,11 +11,15 @@ static const TGAColor red   = TGAColor(255, 0,   0,   255);
 int main() {
     ImageRenderer renderer(500, 500, TGAImage::RGB);
 
+    TGAImage texture;
+    texture.read_tga_file("models/african_head_diffuse.tga");
+    texture.flip_vertically();
+
     std::ifstream in("models/african_head.obj");
-    Model model(in);
+    Model model(in, texture);
     in.close();
 
-    renderer.draw(model);
+    renderer.draw_textured(model);
 
     renderer.save("output.tga");
     return 0;

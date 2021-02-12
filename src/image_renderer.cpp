@@ -76,6 +76,44 @@ void ImageRenderer::draw(const Model& model) {
 
 }
 
+void ImageRenderer::draw_textured(const Model& model) {
+    const std::vector<Vec3d>& vertices = model.get_verts();
+    const std::vector<Vec3d>& textures = model.get_textures();
+
+    const std::vector<Vec3i>& faces       = model.get_face_verts();
+    const std::vector<Vec3i>& text_points = model.get_face_textures();
+
+    TGAImage texture = model.get_texture();
+
+    for (size_t i = 0; i < faces.size(); ++i) {
+        Vec3d vert_a = vertices[ faces[i][0] ];
+        Vec3d vert_b = vertices[ faces[i][1] ];
+        Vec3d vert_c = vertices[ faces[i][2] ];
+
+        Vec3d text_a = textures[ text_points[i][0] ];
+        Vec3d text_b = textures[ text_points[i][1] ];
+        Vec3d text_c = textures[ text_points[i][2] ];
+
+        // If counterclockwise, norm goes inside model
+        Vec3d norm = Vec3d::cross_product( (vert_c - vert_a), 
+                                           (vert_b - vert_a) );
+        norm.normalize();
+
+        if ( !check_visible(norm) ) { continue; }
+        
+        float intensity = Vec3d::dot_product(norm, light_dir_);
+        if (intensity < 0) { intensity = 0; }
+
+        float lights_white = 255 * intensity;
+
+        draw_textured_triangle(vert_a, text_a,
+                               vert_b, text_b,
+                               vert_c, text_c,
+                               texture);
+    }
+
+}
+
 void ImageRenderer::clear() {
     image_.clear();
 }
@@ -165,6 +203,63 @@ void ImageRenderer::fill_triangle(const Vec3d& vert_a,
             current.z += params[0] * p_a.z;
             current.z += params[1] * p_b.z;
             current.z += params[2] * p_c.z;
+
+            try_paint(current, color);
+        }
+    }
+}
+
+TGAColor ImageRenderer::extract_color(const Vec3d& point,
+                                      TGAImage& texture) {
+    int width  = texture.get_width() * point[0];
+    int height = texture.get_height() * point[1];
+
+    return texture.get(width, height);
+}
+
+void ImageRenderer::draw_textured_triangle(
+        const Vec3d& vert_a, const Vec3d& text_a,
+        const Vec3d& vert_b, const Vec3d& text_b,
+        const Vec3d& vert_c, const Vec3d& text_c,
+        TGAImage& texture) {
+    ScreenPoint p_a = to_screen_coords(vert_a);
+    ScreenPoint p_b = to_screen_coords(vert_b);
+    ScreenPoint p_c = to_screen_coords(vert_c);
+
+    ScreenPoint low_bound  = {
+        std::min( {p_a.x, p_b.x, p_c.x} ),
+        std::min( {p_a.y, p_b.y, p_c.y} ),
+        0
+    };
+    ScreenPoint high_bound = {
+        std::max( {p_a.x, p_b.x, p_c.x} ),
+        std::max( {p_a.y, p_b.y, p_c.y} ),
+        0
+    };
+
+    if (low_bound.x < 0) { low_bound.x = 0; }
+    if (low_bound.y < 0) { low_bound.y = 0; }
+    if (high_bound.x > image_width_)  { high_bound.x = image_width_; }
+    if (high_bound.y > image_height_) { high_bound.y = image_height_; }
+
+    for (int w = low_bound.x; w < high_bound.x; ++w) {
+        for (int h = low_bound.y; h < high_bound.y; ++h) {
+            ScreenPoint current = {w, h, 0};
+            Vec3d params = convert_barycentric(p_a, p_b, p_c, current);
+            
+            if (params[0] < 0 || params[1] < 0 || params[2] < 0) {
+                continue;
+            }
+
+            current.z += params[0] * p_a.z;
+            current.z += params[1] * p_b.z;
+            current.z += params[2] * p_c.z;
+
+            Vec3d text_point = text_a * params[0]
+                + text_b * params[1]
+                + text_c * params[2];
+
+            const TGAColor color = extract_color(text_point, texture);
 
             try_paint(current, color);
         }
